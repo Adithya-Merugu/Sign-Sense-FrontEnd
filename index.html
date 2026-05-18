@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>SignSense | Document Analysis</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              background: "#f5faf8",
+              surface: "#ffffff",
+              "surface-soft": "#eef5f2",
+              "surface-line": "#d9e4e0",
+              primary: "#00685f",
+              "primary-soft": "#d8f4ef",
+              "on-surface": "#171d1c",
+              muted: "#52615d",
+              outline: "#7b8a86",
+              amber: "#b7791f",
+              red: "#b91c1c",
+              green: "#047857",
+              blue: "#2563eb"
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px"
+            },
+            fontFamily: {
+              display: ["Plus Jakarta Sans", "sans-serif"],
+              body: ["Inter", "sans-serif"]
+            }
+          }
+        }
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 420, "GRAD" 0, "opsz" 24;
+      }
+
+      .surface-1 {
+        background-color: #ffffff;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+      }
+
+      .drop-active {
+        border-color: #00685f;
+        background-color: #e8fbf7;
+      }
+    </style>
+  </head>
+  <body class="bg-background text-on-surface font-body min-h-screen flex flex-col">
+    <header class="bg-surface/95 backdrop-blur shadow-sm sticky top-0 z-50">
+      <div class="flex justify-between items-center w-full px-5 h-16 max-w-7xl mx-auto">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">fact_check</span>
+          <span class="font-display text-2xl font-bold text-primary">SignSense</span>
+        </div>
+        <nav class="hidden md:flex items-center gap-8">
+          <a class="font-semibold text-muted hover:text-primary transition" href="#upload">Scan</a>
+          <a class="font-semibold text-muted hover:text-primary transition" href="#results">Results</a>
+          <a class="font-semibold text-muted hover:text-primary transition" href="#trust">Trust</a>
+        </nav>
+        <button id="newScanBtn" class="bg-primary text-white px-5 py-2 rounded-lg font-semibold hover:opacity-90 active:scale-95 transition">
+          New Scan
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-5 py-10 md:py-14">
+      <section class="text-center mb-10">
+        <h1 class="font-display text-4xl md:text-5xl font-bold tracking-normal text-on-surface mb-3">Before you sign, scan it.</h1>
+        <p class="text-lg text-muted max-w-2xl mx-auto">
+          Upload every page of a document and get a grounded summary, clause citations, risks, and clean questions to ask.
+        </p>
+        <div class="mt-4 flex justify-center items-center gap-2 text-primary font-medium">
+          <span class="material-symbols-outlined text-[18px]">verified_user</span>
+          <span class="text-sm">Powered by Gemma. Informational only, not legal, medical, or financial advice.</span>
+        </div>
+      </section>
+
+      <section id="upload" class="surface-1 rounded-xl p-5 md:p-8 mb-8 border border-surface-line">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 mb-6">
+          <div id="dropZone" class="md:col-span-2 border-2 border-dashed border-surface-line rounded-xl p-8 md:p-12 flex flex-col items-center justify-center bg-surface-soft hover:border-primary transition cursor-pointer group">
+            <div class="bg-primary-soft p-5 rounded-full mb-5 group-hover:scale-105 transition">
+              <span class="material-symbols-outlined text-[48px] text-primary">cloud_upload</span>
+            </div>
+            <h3 class="font-display text-xl font-semibold mb-1">Drop documents here</h3>
+            <p class="text-muted text-center mb-4">Use multiple pages: JPG, PNG, WEBP, PDF, DOCX, or TXT</p>
+            <p class="text-xs uppercase tracking-wide text-primary font-bold">or browse files</p>
+          </div>
+
+          <button id="cameraBtn" class="flex items-center gap-3 p-4 rounded-lg border border-surface-line hover:bg-surface-soft transition text-left">
+            <span class="material-symbols-outlined text-primary">photo_camera</span>
+            <div>
+              <p class="font-semibold">Take Photo</p>
+              <p class="text-sm text-muted">Best on phone camera</p>
+            </div>
+          </button>
+          <button id="fileBtn" class="flex items-center gap-3 p-4 rounded-lg border border-surface-line hover:bg-surface-soft transition text-left">
+            <span class="material-symbols-outlined text-primary">upload_file</span>
+            <div>
+              <p class="font-semibold">Upload Files</p>
+              <p class="text-sm text-muted">PDF, Word, images, text</p>
+            </div>
+          </button>
+          <button id="pasteBtn" class="flex items-center gap-3 p-4 rounded-lg border border-surface-line hover:bg-surface-soft transition text-left">
+            <span class="material-symbols-outlined text-primary">content_paste</span>
+            <div>
+              <p class="font-semibold">Paste Text</p>
+              <p class="text-sm text-muted">Copy clauses from clipboard</p>
+            </div>
+          </button>
+          <button id="clearBtn" class="flex items-center gap-3 p-4 rounded-lg border border-surface-line hover:bg-surface-soft transition text-left">
+            <span class="material-symbols-outlined text-primary">restart_alt</span>
+            <div>
+              <p class="font-semibold">Clear Inputs</p>
+              <p class="text-sm text-muted">Start fresh safely</p>
+            </div>
+          </button>
+        </div>
+
+        <input id="cameraInput" class="hidden" type="file" accept="image/*" capture="environment" multiple />
+        <input id="fileInput" class="hidden" type="file" accept="image/*,.pdf,.doc,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" multiple />
+
+        <div id="pastePanel" class="hidden mb-6">
+          <label class="text-xs uppercase tracking-wide text-muted font-bold mb-2 block">Pasted document text</label>
+          <textarea id="pastedText" rows="7" class="w-full rounded-lg border-surface-line focus:border-primary focus:ring-primary" placeholder="Paste a clause, agreement text, message, or policy here..."></textarea>
+        </div>
+
+        <div id="fileList" class="hidden mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-xs uppercase tracking-wide text-muted font-bold">Uploaded Pages / Files</p>
+            <p id="fileCount" class="text-sm text-muted"></p>
+          </div>
+          <div id="fileGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-surface-line">
+          <label class="flex flex-col gap-1">
+            <span class="text-xs uppercase tracking-wide text-muted font-bold">Document Type</span>
+            <select id="documentType" class="w-full bg-white border border-surface-line rounded-lg px-3 py-2.5 focus:border-primary focus:ring-0">
+              <option value="auto">Auto-detect</option>
+              <option value="rental_pg">Rental / PG Agreement</option>
+              <option value="job_offer">Job Offer / Internship</option>
+              <option value="loan_emi_bnpl">Loan / EMI / BNPL</option>
+              <option value="course_enrollment">Course Enrollment</option>
+              <option value="gym_subscription">Gym / Subscription</option>
+              <option value="hostel_rules">Hostel Rules</option>
+              <option value="hospital_consent">Hospital Consent</option>
+              <option value="privacy_policy">Privacy Policy</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-xs uppercase tracking-wide text-muted font-bold">Source Language</span>
+            <select id="inputLanguage" class="w-full bg-white border border-surface-line rounded-lg px-3 py-2.5 focus:border-primary focus:ring-0">
+              <option value="auto">Detect Automatically</option>
+              <option value="english">English</option>
+              <option value="hindi">Hindi</option>
+              <option value="telugu">Telugu</option>
+              <option value="kannada">Kannada</option>
+              <option value="tamil">Tamil</option>
+              <option value="malayalam">Malayalam</option>
+            </select>
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-xs uppercase tracking-wide text-muted font-bold">Response Language</span>
+            <select id="responseLanguage" class="w-full bg-white border border-surface-line rounded-lg px-3 py-2.5 focus:border-primary focus:ring-0">
+              <option value="english">English</option>
+              <option value="hindi">Hindi</option>
+              <option value="telugu">Telugu</option>
+              <option value="kannada">Kannada</option>
+              <option value="tamil">Tamil</option>
+              <option value="malayalam">Malayalam</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="mt-6 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-soft rounded-full border border-surface-line">
+              <span class="material-symbols-outlined text-[16px] text-primary">verified</span>
+              <span class="text-[11px] font-bold text-muted">RAG GROUNDED</span>
+            </div>
+            <p class="text-sm text-muted italic">If evidence is missing, SignSense should say so.</p>
+          </div>
+          <button id="analyzeBtn" class="w-full md:w-auto bg-primary text-white px-8 py-4 rounded-lg font-display text-xl font-semibold hover:opacity-90 shadow-md transition active:scale-95">
+            Analyze Document
+          </button>
+        </div>
+      </section>
+
+      <section id="loadingPanel" class="hidden surface-1 rounded-xl p-6 mb-8 border border-surface-line">
+        <div class="flex items-start gap-4">
+          <div class="h-11 w-11 rounded-full bg-primary-soft flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-primary animate-pulse">psychology</span>
+          </div>
+          <div class="flex-1">
+            <h2 class="font-display text-xl font-semibold">Analyzing with Gemma</h2>
+            <p id="loadingText" class="text-muted mt-1">Reading pages and extracting clauses...</p>
+            <div class="mt-4 h-2 bg-surface-soft rounded-full overflow-hidden">
+              <div id="progressBar" class="h-full bg-primary rounded-full transition-all duration-500" style="width: 15%"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="errorPanel" class="hidden rounded-xl p-5 mb-8 border border-red/20 bg-red-50 text-red">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined">error</span>
+          <div>
+            <p class="font-semibold">Something needs attention</p>
+            <p id="errorText" class="text-sm mt-1"></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="results" class="hidden">
+        <div class="surface-1 rounded-xl p-5 md:p-8 mb-6 border border-surface-line">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div id="verdictBadge" class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-bold mb-3"></div>
+              <h2 id="oneSentence" class="font-display text-2xl md:text-3xl font-bold"></h2>
+              <p id="docMeta" class="text-muted mt-2"></p>
+            </div>
+            <div class="rounded-xl border border-surface-line p-5 min-w-[150px] text-center bg-surface-soft">
+              <p class="text-xs uppercase tracking-wide text-muted font-bold">Risk Score</p>
+              <p id="riskScore" class="font-display text-4xl font-bold text-primary mt-1">0</p>
+              <p class="text-sm text-muted">out of 100</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)_360px] gap-6">
+          <aside class="hidden xl:block">
+            <div class="surface-1 rounded-xl border border-surface-line p-3 sticky top-24">
+              <a class="block rounded-lg px-3 py-2 font-semibold hover:bg-surface-soft" href="#summaryCard">Summary</a>
+              <a class="block rounded-lg px-3 py-2 font-semibold hover:bg-surface-soft" href="#risksCard">Risks</a>
+              <a class="block rounded-lg px-3 py-2 font-semibold hover:bg-surface-soft" href="#suggestionsCard">Suggestions</a>
+              <a class="block rounded-lg px-3 py-2 font-semibold hover:bg-surface-soft" href="#citationsCard">Citations</a>
+              <a class="block rounded-lg px-3 py-2 font-semibold hover:bg-surface-soft" href="#followUpCard">Ask</a>
+            </div>
+          </aside>
+
+          <div class="space-y-6">
+            <article id="summaryCard" class="surface-1 rounded-xl p-5 md:p-6 border border-surface-line">
+              <h3 class="font-display text-xl font-semibold mb-4">Plain Summary</h3>
+              <div id="summaryContent" class="space-y-4"></div>
+            </article>
+
+            <article id="risksCard" class="surface-1 rounded-xl p-5 md:p-6 border border-surface-line">
+              <h3 class="font-display text-xl font-semibold mb-4">Top Risks</h3>
+              <div id="riskList" class="space-y-4"></div>
+            </article>
+
+            <article id="suggestionsCard" class="surface-1 rounded-xl p-5 md:p-6 border border-surface-line">
+              <h3 class="font-display text-xl font-semibold mb-4">Clean Suggestions</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <p class="text-xs uppercase tracking-wide text-muted font-bold mb-2">Do Next</p>
+                  <ul id="suggestionList" class="space-y-2"></ul>
+                </div>
+                <div>
+                  <p class="text-xs uppercase tracking-wide text-muted font-bold mb-2">Questions To Ask</p>
+                  <ul id="questionList" class="space-y-2"></ul>
+                </div>
+              </div>
+            </article>
+
+            <article id="citationsCard" class="surface-1 rounded-xl p-5 md:p-6 border border-surface-line">
+              <h3 class="font-display text-xl font-semibold mb-4">Citations & Grounding</h3>
+              <div id="groundingNotes" class="mb-4 space-y-2"></div>
+              <div id="citationList" class="space-y-3"></div>
+            </article>
+
+            <article id="extractedCard" class="surface-1 rounded-xl p-5 md:p-6 border border-surface-line">
+              <details>
+                <summary class="font-display text-xl font-semibold cursor-pointer">Extracted Text</summary>
+                <div id="extractedText" class="mt-4 space-y-3"></div>
+              </details>
+            </article>
+
+            <article id="followUpCardMobile" class="xl:hidden surface-1 rounded-xl p-5 md:p-6 border border-surface-line">
+              <h3 class="font-display text-xl font-semibold mb-2">Ask About This Document</h3>
+              <p class="text-sm text-muted mb-4">Answers stay grounded in the uploaded document and previous analysis.</p>
+              <div class="flex flex-col md:flex-row gap-3 askControls"></div>
+              <div class="flex flex-wrap gap-2 mt-3 quickAskWrap">
+                <button class="quickAsk px-3 py-1.5 rounded-full bg-surface-soft text-sm font-semibold" data-question="Explain this like I am 18.">Explain simply</button>
+                <button class="quickAsk px-3 py-1.5 rounded-full bg-surface-soft text-sm font-semibold" data-question="What should I ask before signing?">Ask-before-signing</button>
+                <button class="quickAsk px-3 py-1.5 rounded-full bg-surface-soft text-sm font-semibold" data-question="What is the worst-case cost?">Worst-case cost</button>
+                <button class="quickAsk px-3 py-1.5 rounded-full bg-surface-soft text-sm font-semibold" data-question="Draft a polite message asking for clarification.">Draft message</button>
+              </div>
+            </article>
+          </div>
+
+          <aside id="followUpCard" class="hidden xl:block">
+            <div class="surface-1 rounded-xl p-5 border border-surface-line sticky top-24">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="material-symbols-outlined text-primary">chat</span>
+                <h3 class="font-display text-xl font-semibold">Ask SignSense</h3>
+              </div>
+              <p class="text-sm text-muted mb-4">Ask questions while reading. Answers stay grounded in this document.</p>
+              <div class="flex flex-col gap-3 askControls"></div>
+              <div class="flex flex-wrap gap-2 mt-3 quickAskWrap">
+                <button class="quickAsk px-3 py-1.5 rounded-full bg-surface-soft text-sm font-semibold" data-question="Explain this like I am 18.">Explain simply</button>
+                <button class="quickAsk px-3 py-1.5 rounded-full bg-surface-soft text-sm font-semibold" data-question="What should I ask before signing?">Ask-before-signing</button>
+                <button class="quickAsk px-3 py-1.5 rounded-full bg-surface-soft text-sm font-semibold" data-question="What is the worst-case cost?">Worst-case cost</button>
+                <button class="quickAsk px-3 py-1.5 rounded-full bg-surface-soft text-sm font-semibold" data-question="Draft a polite message asking for clarification.">Draft message</button>
+              </div>
+              <div id="followUpAnswer" class="hidden mt-5 rounded-lg bg-surface-soft border border-surface-line p-4 max-h-[420px] overflow-auto"></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="trust" class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-10">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary">description</span>
+          <div>
+            <p class="font-semibold">Clause Citations</p>
+            <p class="text-sm text-muted">Every concrete risk links back to uploaded text.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary">lock</span>
+          <div>
+            <p class="font-semibold">Privacy-First Flow</p>
+            <p class="text-sm text-muted">Your UI can run against your own backend and key.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary">gavel</span>
+          <div>
+            <p class="font-semibold">No Final Advice</p>
+            <p class="text-sm text-muted">It highlights risks and suggests questions, not legal conclusions.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <button id="mobileAskBtn" class="hidden fixed bottom-4 left-4 right-4 z-40 xl:hidden bg-primary text-white rounded-lg py-3 font-display font-semibold shadow-lg">
+      Ask SignSense
+    </button>
+
+    <footer class="bg-surface-soft mt-auto border-t border-surface-line">
+      <div class="flex flex-col md:flex-row justify-between items-center py-8 px-5 w-full max-w-7xl mx-auto gap-3">
+        <div class="text-center md:text-left">
+          <span class="font-display text-xl font-bold text-primary">SignSense</span>
+          <p class="text-sm text-muted mt-1">Gemma-powered document risk scanner for everyday agreements.</p>
+        </div>
+        <p class="text-sm text-muted">Informational only. Verify important decisions with a qualified professional.</p>
+      </div>
+    </footer>
+
+    <script>
+      const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+      const API_BASE = isLocal
+        ? "http://127.0.0.1:8000"
+        : "https://sign-sense-adithya2003porps-2631s-projects.vercel.app";
+      const selectedFiles = [];
+      let lastAnalysis = null;
+      let progressTimer = null;
+
+      const els = {
+        dropZone: document.getElementById("dropZone"),
+        cameraBtn: document.getElementById("cameraBtn"),
+        fileBtn: document.getElementById("fileBtn"),
+        pasteBtn: document.getElementById("pasteBtn"),
+        clearBtn: document.getElementById("clearBtn"),
+        newScanBtn: document.getElementById("newScanBtn"),
+        cameraInput: document.getElementById("cameraInput"),
+        fileInput: document.getElementById("fileInput"),
+        pastedText: document.getElementById("pastedText"),
+        pastePanel: document.getElementById("pastePanel"),
+        fileList: document.getElementById("fileList"),
+        fileGrid: document.getElementById("fileGrid"),
+        fileCount: document.getElementById("fileCount"),
+        analyzeBtn: document.getElementById("analyzeBtn"),
+        loadingPanel: document.getElementById("loadingPanel"),
+        loadingText: document.getElementById("loadingText"),
+        progressBar: document.getElementById("progressBar"),
+        errorPanel: document.getElementById("errorPanel"),
+        errorText: document.getElementById("errorText"),
+        results: document.getElementById("results"),
+        documentType: document.getElementById("documentType"),
+        inputLanguage: document.getElementById("inputLanguage"),
+        responseLanguage: document.getElementById("responseLanguage"),
+        followUpInput: null,
+        followUpBtn: null,
+        followUpAnswer: document.getElementById("followUpAnswer")
+      };
+
+      document.querySelectorAll(".askControls").forEach((container) => {
+        container.innerHTML = `
+          <input class="followUpInput flex-1 rounded-lg border-surface-line focus:border-primary focus:ring-primary" placeholder="Example: What should I ask before signing?" />
+          <button class="followUpBtn bg-primary text-white px-5 py-3 rounded-lg font-semibold">Ask</button>
+        `;
+      });
+
+      const followUpInputs = Array.from(document.querySelectorAll(".followUpInput"));
+      const followUpButtons = Array.from(document.querySelectorAll(".followUpBtn"));
+      els.followUpInput = followUpInputs[0];
+      els.followUpBtn = followUpButtons[0];
+
+      els.cameraBtn.addEventListener("click", () => els.cameraInput.click());
+      els.fileBtn.addEventListener("click", () => els.fileInput.click());
+      els.dropZone.addEventListener("click", () => els.fileInput.click());
+      els.pasteBtn.addEventListener("click", () => {
+        els.pastePanel.classList.toggle("hidden");
+        if (!els.pastePanel.classList.contains("hidden")) els.pastedText.focus();
+      });
+      els.clearBtn.addEventListener("click", resetInputs);
+      els.newScanBtn.addEventListener("click", () => {
+        resetInputs();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      els.cameraInput.addEventListener("change", (event) => addFiles(event.target.files));
+      els.fileInput.addEventListener("change", (event) => addFiles(event.target.files));
+      els.analyzeBtn.addEventListener("click", analyzeDocument);
+      followUpButtons.forEach((button) => button.addEventListener("click", askFollowUp));
+      followUpInputs.forEach((input) => {
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") askFollowUp();
+        });
+      });
+
+      document.getElementById("mobileAskBtn").addEventListener("click", () => {
+        document.getElementById("followUpCardMobile").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+      document.querySelectorAll(".quickAsk").forEach((button) => {
+        button.addEventListener("click", () => {
+          els.followUpInput.value = button.dataset.question;
+          askFollowUp();
+        });
+      });
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        els.dropZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          els.dropZone.classList.add("drop-active");
+        });
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        els.dropZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          els.dropZone.classList.remove("drop-active");
+        });
+      });
+
+      els.dropZone.addEventListener("drop", (event) => addFiles(event.dataTransfer.files));
+
+      function addFiles(fileList) {
+        Array.from(fileList || []).forEach((file) => selectedFiles.push(file));
+        renderFileList();
+        els.cameraInput.value = "";
+        els.fileInput.value = "";
+      }
+
+      function renderFileList() {
+        els.fileList.classList.toggle("hidden", selectedFiles.length === 0);
+        els.fileCount.textContent = `${selectedFiles.length} file${selectedFiles.length === 1 ? "" : "s"} ready`;
+        els.fileGrid.innerHTML = "";
+
+        selectedFiles.forEach((file, index) => {
+          const card = document.createElement("div");
+          card.className = "flex items-center gap-3 rounded-lg border border-surface-line bg-white p-3";
+          card.innerHTML = `
+            <div class="h-12 w-12 rounded-lg bg-primary-soft flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary">${file.type.startsWith("image/") ? "image" : "description"}</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="font-semibold truncate">${escapeHtml(file.name)}</p>
+              <p class="text-xs text-muted">${formatBytes(file.size)} · Page/File ${index + 1}</p>
+            </div>
+            <button class="removeFile p-2 rounded hover:bg-surface-soft" aria-label="Remove file" data-index="${index}">
+              <span class="material-symbols-outlined text-muted">close</span>
+            </button>
+          `;
+          els.fileGrid.appendChild(card);
+        });
+
+        document.querySelectorAll(".removeFile").forEach((button) => {
+          button.addEventListener("click", (event) => {
+            selectedFiles.splice(Number(event.currentTarget.dataset.index), 1);
+            renderFileList();
+          });
+        });
+      }
+
+      function resetInputs() {
+        selectedFiles.splice(0, selectedFiles.length);
+        els.pastedText.value = "";
+        els.pastePanel.classList.add("hidden");
+        els.results.classList.add("hidden");
+        els.errorPanel.classList.add("hidden");
+        els.followUpAnswer.classList.add("hidden");
+        lastAnalysis = null;
+        renderFileList();
+      }
+
+      async function analyzeDocument() {
+        hideError();
+        const pastedText = els.pastedText.value.trim();
+        if (selectedFiles.length === 0 && !pastedText) {
+          showError("Upload at least one page/file or paste document text first.");
+          return;
+        }
+
+        const formData = new FormData();
+        selectedFiles.forEach((file) => formData.append("files", file));
+        formData.append("pasted_text", pastedText);
+        formData.append("input_language", els.inputLanguage.value);
+        formData.append("response_language", els.responseLanguage.value);
+        formData.append("document_type", els.documentType.value);
+
+        setLoading(true);
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 300000);
+        try {
+          const response = await fetch(`${API_BASE}/api/analyze`, {
+            method: "POST",
+            body: formData,
+            signal: controller.signal
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.detail || "Analysis failed.");
+          lastAnalysis = data;
+          renderResults(data);
+          els.results.classList.remove("hidden");
+          document.getElementById("mobileAskBtn").classList.remove("hidden");
+          els.results.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (error) {
+          if (error.name === "AbortError") {
+            showError("Analysis took longer than 5 minutes. Try fewer pages, paste text, or use a smaller file.");
+          } else {
+            showError(error.message || "Could not analyze the document.");
+          }
+        } finally {
+          window.clearTimeout(timeout);
+          setLoading(false);
+        }
+      }
+
+      async function askFollowUp() {
+        hideError();
+        const activeInput = document.activeElement && document.activeElement.classList.contains("followUpInput")
+          ? document.activeElement
+          : followUpInputs.find((input) => input.value.trim()) || followUpInputs[0];
+        const question = activeInput.value.trim();
+        if (!lastAnalysis) {
+          showError("Run document analysis before asking a follow-up.");
+          return;
+        }
+        if (!question) {
+          showError("Type a follow-up question first.");
+          return;
+        }
+
+        followUpButtons.forEach((button) => {
+          button.disabled = true;
+          button.textContent = "Asking...";
+        });
+        try {
+          const response = await fetch(`${API_BASE}/api/follow-up`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              question,
+              response_language: els.responseLanguage.value,
+              analysis: lastAnalysis
+            })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.detail || "Follow-up failed.");
+          els.followUpAnswer.classList.remove("hidden");
+          els.followUpAnswer.innerHTML = `
+            <p class="font-semibold mb-2">Answer</p>
+            <p class="text-muted whitespace-pre-wrap">${escapeHtml(data.answer || "Not enough evidence.")}</p>
+            ${renderCitationHtml(data.citations || [])}
+          `;
+        } catch (error) {
+          showError(error.message || "Could not answer the follow-up.");
+        } finally {
+          followUpButtons.forEach((button) => {
+            button.disabled = false;
+            button.textContent = "Ask";
+          });
+        }
+      }
+
+      function renderResults(data) {
+        document.getElementById("verdictBadge").className = `inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-bold mb-3 ${verdictClass(data.verdict)}`;
+        document.getElementById("verdictBadge").innerHTML = `<span class="material-symbols-outlined text-[18px]">${verdictIcon(data.verdict)}</span>${escapeHtml(data.verdict || "Analysis Ready")}`;
+        document.getElementById("oneSentence").textContent = data.one_sentence_summary || "Document analysis completed.";
+        document.getElementById("docMeta").textContent = `${labelize(data.document_type)} · Languages: ${(data.detected_languages || []).join(", ") || "unknown"}`;
+        document.getElementById("riskScore").textContent = data.risk_score ?? 0;
+
+        renderSummary(data.summary || {});
+        renderRisks(data.top_risks || []);
+        renderList("suggestionList", data.clean_suggestions || []);
+        renderList("questionList", data.questions_to_ask || []);
+        renderGrounding(data);
+        renderExtracted(data.extracted_pages || []);
+      }
+
+      function renderSummary(summary) {
+        const fields = [
+          ["Plain-language summary", summary.plain_language_summary],
+          ["Parties involved", summary.parties_involved],
+          ["Key dates", summary.key_dates],
+          ["Money amounts", summary.money_amounts],
+          ["Your obligations", summary.user_obligations],
+          ["Other party obligations", summary.other_party_obligations]
+        ];
+        document.getElementById("summaryContent").innerHTML = fields
+          .filter(([, value]) => value && (!Array.isArray(value) || value.length))
+          .map(([label, value]) => `
+            <div>
+              <p class="text-xs uppercase tracking-wide text-muted font-bold mb-1">${label}</p>
+              <div class="text-muted">${Array.isArray(value) ? value.map((item) => `<p>• ${escapeHtml(item)}</p>`).join("") : escapeHtml(value)}</div>
+            </div>
+          `)
+          .join("") || `<p class="text-muted">No summary returned.</p>`;
+      }
+
+      function renderRisks(risks) {
+        const container = document.getElementById("riskList");
+        if (!risks.length) {
+          container.innerHTML = `<p class="text-muted">No concrete risks were supported by the uploaded document.</p>`;
+          return;
+        }
+
+        container.innerHTML = risks.map((risk) => `
+          <div class="rounded-xl border border-surface-line p-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
+              <h4 class="font-display text-lg font-semibold">${escapeHtml(risk.title)}</h4>
+              <span class="self-start md:self-auto rounded-full px-3 py-1 text-xs font-bold ${severityClass(risk.severity)}">${escapeHtml(risk.severity || "Risk")}</span>
+            </div>
+            <div class="space-y-3 text-sm">
+              ${factBlock("Meaning", risk.plain_meaning)}
+              ${renderCitationHtml(risk.citations || [], true)}
+              <details class="rounded-lg border border-surface-line bg-surface-soft">
+                <summary class="cursor-pointer px-3 py-2 font-semibold text-primary flex items-center justify-between">
+                  <span>More details</span>
+                  <span class="material-symbols-outlined text-[18px]">expand_more</span>
+                </summary>
+                <div class="px-3 pb-3 pt-1 space-y-3">
+                  ${factBlock("Why it matters", risk.why_it_matters)}
+                  ${factBlock("Suggestion", risk.suggestion)}
+                  ${factBlock("Ask", risk.ask_before_signing)}
+                </div>
+              </details>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      function renderGrounding(data) {
+        const notes = [...(data.groundedness_notes || []), ...(data.missing_or_unclear_info || []).map((item) => `Missing/unclear: ${item}`)];
+        document.getElementById("groundingNotes").innerHTML = notes.length
+          ? notes.map((note) => `<div class="rounded-lg bg-surface-soft border border-surface-line p-3 text-sm text-muted">${escapeHtml(note)}</div>`).join("")
+          : `<div class="rounded-lg bg-surface-soft border border-surface-line p-3 text-sm text-muted">No grounding warnings returned.</div>`;
+        document.getElementById("citationList").innerHTML = renderCitationHtml(data.citations || []);
+      }
+
+      function renderExtracted(pages) {
+        document.getElementById("extractedText").innerHTML = pages.length
+          ? pages.map((page) => `
+            <div class="rounded-lg border border-surface-line bg-surface-soft p-3">
+              <p class="text-xs uppercase tracking-wide text-muted font-bold mb-2">${escapeHtml(page.source_name)} · Page ${page.page_number} · ${escapeHtml(page.language || "unknown")} · ${escapeHtml(page.confidence || "medium")} confidence</p>
+              <pre class="whitespace-pre-wrap text-sm text-muted font-body">${escapeHtml(page.text || "")}</pre>
+            </div>
+          `).join("")
+          : `<p class="text-muted">No extracted text returned.</p>`;
+      }
+
+      function renderList(elementId, items) {
+        document.getElementById(elementId).innerHTML = items.length
+          ? items.map((item) => `<li class="flex gap-2"><span class="material-symbols-outlined text-green text-[18px] mt-0.5">check_circle</span><span class="text-muted">${escapeHtml(item)}</span></li>`).join("")
+          : `<li class="text-muted">No items returned.</li>`;
+      }
+
+      function renderCitationHtml(citations, compact = false) {
+        if (!citations.length) return "";
+        return `<div class="space-y-2 mt-3">${citations.map((citation) => `
+          <div class="rounded-lg bg-blue-50 border border-blue/20 p-3">
+            <p class="text-xs uppercase tracking-wide text-blue font-bold">${escapeHtml(citation.source || "document")}${citation.page ? ` · Page ${citation.page}` : ""}</p>
+            <p class="text-sm text-muted mt-1">${compact ? "Quote: " : ""}“${escapeHtml(citation.quote || "")}”</p>
+          </div>
+        `).join("")}</div>`;
+      }
+
+      function factBlock(label, value) {
+        if (!value) return "";
+        return `<div><p class="text-xs uppercase tracking-wide text-muted font-bold">${label}</p><p class="text-muted">${escapeHtml(value)}</p></div>`;
+      }
+
+      function setLoading(isLoading) {
+        els.loadingPanel.classList.toggle("hidden", !isLoading);
+        els.analyzeBtn.disabled = isLoading;
+        els.analyzeBtn.textContent = isLoading ? "Analyzing..." : "Analyze Document";
+        if (isLoading) {
+          const steps = [
+            ["Reading pages and extracting clauses...", 20],
+            ["Checking document text against trusted guidance...", 45],
+            ["Scoring risks and missing evidence...", 70],
+            ["Preparing citations and clean suggestions...", 88]
+          ];
+          let index = 0;
+          els.loadingText.textContent = steps[0][0];
+          els.progressBar.style.width = `${steps[0][1]}%`;
+          progressTimer = window.setInterval(() => {
+            index = Math.min(index + 1, steps.length - 1);
+            els.loadingText.textContent = steps[index][0];
+            els.progressBar.style.width = `${steps[index][1]}%`;
+          }, 1800);
+        } else {
+          window.clearInterval(progressTimer);
+          els.progressBar.style.width = "100%";
+        }
+      }
+
+      function showError(message) {
+        els.errorText.textContent = message;
+        els.errorPanel.classList.remove("hidden");
+        els.errorPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      function hideError() {
+        els.errorPanel.classList.add("hidden");
+      }
+
+      function severityClass(severity = "") {
+        const value = severity.toLowerCase();
+        if (value.includes("high")) return "bg-red-50 text-red border border-red/20";
+        if (value.includes("medium")) return "bg-amber-50 text-amber border border-amber/20";
+        return "bg-green-50 text-green border border-green/20";
+      }
+
+      function verdictClass(verdict = "") {
+        const value = verdict.toLowerCase();
+        if (value.includes("do not") || value.includes("high")) return "bg-red-50 text-red border border-red/20";
+        if (value.includes("ask")) return "bg-amber-50 text-amber border border-amber/20";
+        return "bg-green-50 text-green border border-green/20";
+      }
+
+      function verdictIcon(verdict = "") {
+        const value = verdict.toLowerCase();
+        if (value.includes("do not") || value.includes("high")) return "warning";
+        if (value.includes("ask")) return "help";
+        return "check_circle";
+      }
+
+      function formatBytes(bytes) {
+        if (!bytes) return "0 B";
+        const units = ["B", "KB", "MB", "GB"];
+        const index = Math.floor(Math.log(bytes) / Math.log(1024));
+        return `${(bytes / Math.pow(1024, index)).toFixed(index ? 1 : 0)} ${units[index]}`;
+      }
+
+      function labelize(value = "") {
+        return value.replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+    </script>
+  </body>
+</html>
